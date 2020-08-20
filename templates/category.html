@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <title>Hello, world!</title>
+
+</head>
+<body class="container">
+  <div class="row">
+    <div class="col s12">
+      <ul class="tabs">
+        <li class="tab col s6"><a class="active" href="#test1">Expense</a></li>
+        <li class="tab col s6"><a href="#test2">Income</a></li>
+      </ul>
+    </div>
+    <div id="test1" class="col s12">
+    <form method="POST">
+        <input type="hidden" name="in_out" value="1">
+        <div class="input-field col m6 s12">
+          <label for="date_outcome">Date</label>
+          <input id="date_outcome" class="datepicker" type="text" name="date" autocomplete="off" placeholder="">
+        </div>
+        <div class="input-field col m6 s12">
+          <label for="time_outcome">Time</label>
+          <input id="time_outcome" class="timepicker" type="text" name="time" autocomplete="off" placeholder="">
+        </div>
+        <div class="input-field col m6 s12">
+          <select id="main_outcome" name="main"></select>
+          <label for="main_outcome">Category</label>
+        </div>
+        <div class="input-field col m6 s12">
+          <select id="sub_outcome" name="sub"></select>
+          <label for="sub_outcome">Sub Category</label>
+        </div>
+        <div class="input-field col m6 s12">
+          <select id="account_outcome" class="account" name="account"></select>
+          <label for="account_outcome">Account</label>
+        </div>
+        <div class="input-field col m6 s12">
+          <label for="amount_outcome">Amount</label>
+          <input id="amount_outcome" name="amount" type="number">
+        </div>
+        <div class="input-field col s12">
+          <input id="description_outcome" name="description" type="text">
+          <label for="description_outcome">Description</label>
+        </div>
+        <div class="input-field col s12">
+          <textarea id="notes_outcome" class="materialize-textarea" name="notes"></textarea>
+          <label for="notes_outcome">Notes</label>
+        </div>
+      <center>
+        <button class="btn blue" type="submit">Add</button>
+      </center>
+      </form >
+    </div>
+    <div id="test2" class="col s12">
+    <form method="POST">
+        <input type="hidden" name="in_out" value="0">
+        <div class="input-field col m6 s12">
+          <label for="date_income">Date</label>
+          <input id="date_income" class="datepicker" type="text" name="date" autocomplete="off" placeholder="">
+        </div>
+        <div class="input-field col m6 s12">
+          <label for="time_income">Time</label>
+          <input id="time_income" class="timepicker" type="text" name="time" autocomplete="off" placeholder="">
+        </div>
+        <div class="input-field col m6 s12">
+          <select id="main_income" name="main"></select>
+          <label for="main_income">Category</label>
+        </div>
+        <div class="input-field col m6 s12">
+          <select id="sub_income" name="sub"></select>
+          <label for="sub_income">Sub Category</label>
+        </div>
+        <div class="input-field col m6 s12">
+          <select id="account_income" class="account" name="account"></select>
+          <label for="account_income">Account</label>
+        </div>
+        <div class="input-field col m6 s12">
+          <label for="amount_income">Amount</label>
+          <input id="amount_income" name="amount" type="number">
+        </div>
+        <div class="input-field col s12">
+          <input id="description_income" name="description" type="text">
+          <label for="description_income">Description</label>
+        </div>
+        <div class="input-field col s12">
+          <textarea id="notes_income" class="materialize-textarea" name="notes"></textarea>
+          <label for="notes_income">Notes</label>
+        </div>
+
+      <center>
+        <button class="btn blue" type="submit">Add</button>
+      </center>
+      </form>
+    </div>
+  </div>
+
+
+<script>
+   $(document).ready(function(){
+    $('.tabs').tabs();
+     $('select').formSelect();
+    $('.datepicker').datepicker({
+        setDefaultDate: true,
+        defaultDate: new Date(),
+        autoClose : true,
+        format: 'yyyy-mm-dd',
+    });
+    $('.timepicker').timepicker({
+        autoClose : true,
+    });
+    date = new Date().toLocaleTimeString()
+    if (date.length == 10){date = '0'+date}
+    $('.timepicker').val(date.substring(0,5) + ' '+ date.substring(9))
+  });
+
+  function cat_change(cat,typ) {
+    $('#main_'+typ).append("<option disabled selected>Select the category</option>")
+		cat.forEach(function(dic) {
+			if (dic.pid == 0) {
+				$('#main_'+typ).append("<option value='"+dic.id+"'>"+dic.name+"</option>")
+			}
+     $('select').formSelect();
+
+		});
+		$('#main_'+typ).on('change',function(e){
+			pid = this.value
+			$('#sub_'+typ).html('<option disabled selected>Select Sub-category</option>')
+      cat.forEach(function(dic) {
+        console.log(pid)
+				if (dic.pid == pid) {
+					$('#sub_'+typ).append("<option value='"+dic.id+"'>"+dic.name+"</option>")
+				};
+			})
+      $('select').formSelect();
+    });
+	};
+
+  function account_change(acc) {
+    $('.account').append("<option disabled selected>Select the Account</option>")
+    acc.forEach(function(dic) {
+        $('.account').append("<option value='"+dic.id+"'>"+dic.name+"</option>")
+    });
+   $('select').formSelect();
+  }
+
+  $.get("/get_category/1", function(data){
+    outcome_cat = cat_change(data['data'], 'outcome')
+  })
+  $.get("/get_category/0", function(data){
+    income_cat = cat_change(data['data'], 'income')
+  })
+  $.get("/get_account", function(data){
+    income_cat = account_change(data['data'])
+  })
+
+
+</script>
+
+  
+</body>
+</html>

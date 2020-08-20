@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <title>Hello, world!</title>
+
+</head>
+<body>
+	<style>
+		.in_out_0{
+			background-color: rgb(153, 255, 153);
+		}
+		.in_out_1{
+			background-color: rgb(255, 204, 204);
+		}
+	</style>
+	<table>
+		<tr>
+			<th>S.No</th>
+			<th>Date</th>
+			<th>Account</th>
+			<th>Category</th>
+			<th>Sub Category</th>
+			<th>Amount</th>
+			<th>Desctiption</th>
+			<th>Notes</th>
+		</tr>
+		{% for i in data.dairy %}
+		<tr class="in_out_{{i.in_out}}">
+			<td>{{loop.index}}</td>
+			<td>{{i.date}}</td>
+			<td>{{data['account'][i.account]}}</td>
+			<td>{{data['cat'][i['cat']]}}</td>
+			<td>{{data['cat'][i['sub']]}}</td>
+			<td>{{i.amount}}</td>
+			<td>{{i.description}}</td>
+			<td>{{i.notes}}</td>
+		</tr>
+		{% endfor %}
+	</table>
+
+
+</body>

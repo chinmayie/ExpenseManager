@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <title>Hello, world!</title>
+
+</head>
+<body class="container">
+  <div class="row">
+    <form method="POST">
+        <div class="input-field col m6 s12">
+          <select id="type" name="type">
+            <option disabled selected>Select the type</option>
+            <option value="0">Income</option>
+            <option value="1">Outcome</option>
+          </select>
+          <label for="type">Income / Outcome</label>
+        </div>        
+        <div class="input-field col m6 s12">
+          <select id="main" name="pid"></select>
+          <label for="main">Parent Category</label>
+        </div>
+        <div class="input-field col m6 s12">
+          <input id="name" name="name" type="text">
+          <label for="name">Category Name</label>
+        </div>
+      <center>
+        <button class="btn blue" type="submit">Add</button>
+      </center>
+      </form >
+    </div>
+    
+
+
+<script>
+  var cat = []
+
+   $(document).ready(function(){
+     $('select').formSelect();
+   });
+
+	$('#type').on('change',function(e){
+		value = this.value
+		$('#main').html('<option value="0" selected>No Parent Category</option>')
+    cat.forEach(function(dic) {
+      console.log(dic)
+			if (dic.type == value) {
+				$('#main').append("<option value='"+dic.id+"'>"+dic.name+"</option>")
+			};
+    $('select').formSelect();
+    })
+  });
+
+
+  $.get("/get_parent_category", function(data){
+    cat = data['data']
+  })
+
+
+</script>
+
+  
+</body>
+</html>
