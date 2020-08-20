@@ -47,12 +47,12 @@ def list(account_name=None, category_name=None):
 @app.route('/get_category/<int:typ>')
 def cat(typ):
     data = db.category.find({'type':typ},{'_id':0}).sort('pid')
-    return {'data': [i for i in data]}
+    return jsonify({'data': [i for i in data]})
 
 @app.route('/get_parent_category')
 def parent_cat():
     data = db.category.find({'pid':0},{'_id':0}).sort('pid')
-    return {'data': [i for i in data]}
+    return jsonify({'data': [i for i in data]})
 
 @app.route('/add_category', methods=['POST',"GET"])
 def add_category():
