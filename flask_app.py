@@ -41,17 +41,22 @@ def list(account_name=None, category_name=None):
     _filter_3 = {'account':tuple(account)[0]} if account_name else {}
     _filter_3.update({'cat': tuple(cat)[0]}) if category_name else None
     dairy = db.dairy.find(_filter_3 ,{'_id':0}).sort('date')
+    account = {i['id']: i['name'] for i in db.account.find({},{'_id':0})}
+    cat = {i['id']: i['name'] for i in db.category.find({},{'_id':0, 'id': 1, 'name': 1})}
     data = {'dairy': dairy, 'account': account, 'cat': cat}
     return(render_template('list.html', data=data))
 
-@app.route('/get_category/<int:typ>')
-def cat(typ):
-    data = db.category.find({'type':typ},{'_id':0}).sort('pid')
-    return jsonify({'data': [i for i in data]})
-
-@app.route('/get_parent_category')
-def parent_cat():
-    data = db.category.find({'pid':0},{'_id':0}).sort('pid')
+@app.route('/get_category/type/<typ>')
+@app.route('/get_category/child/<int:pid>')
+@app.route('/get_category/cat/<cat>')
+def cat(typ=None,cat=None,pid=None):
+    if typ:
+        _filter = {'type': 0} if typ == 'income' else {'type':1}
+    elif cat:
+        _filter = {'pid': 0} if cat == 'parent' else {'pid':{'$ne':0}}
+    elif pid:
+        _filter = {'pid': pid}
+    data = db.category.find(_filter,{'_id':0}).sort('pid')
     return jsonify({'data': [i for i in data]})
 
 @app.route('/add_category', methods=['POST',"GET"])
@@ -70,7 +75,16 @@ def add_category():
 @app.route('/get_account')
 def get_account():
     data = db.account.find({},{'_id':0}).sort('id')
-    return {'data': [i for i in data]}
+    return jsonify({'data': [i for i in data]})
+
+
+@app.route('/update_dairy', methods=['POST'])
+def update_dairy():
+    # print(type(request.json['date']))
+    a = request.json
+    a['date'] = datetime.strptime(a['date'],'%Y-%m-%d %I:%M %p')
+    res = db.dairy.update_one({'id':a['id']},{'$set':a})
+    return jsonify({'modified_count':res.modified_count})
 
 
 @app.route('/account')

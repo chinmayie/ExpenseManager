@@ -120,8 +120,17 @@
         autoClose : true,
     });
     date = new Date().toLocaleTimeString()
-    if (date.length == 10){date = '0'+date}
-    $('.timepicker').val(date.substring(0,5) + ' '+ date.substring(9))
+    var d = new Date();
+    var hr = d.getHours();
+    var min = d.getMinutes();
+    var ampm = "AM";
+    if( hr > 12 ) {
+        hr -= 12;
+        ampm = "PM";
+      }
+    if (min < 10) {min = "0" + min;}
+    if (hr < 10) {hr = "0" + hr;}
+    $('.timepicker').val( hr + ":" + min + " "+ ampm )
   });
 
   function cat_change(cat,typ) {
@@ -154,10 +163,10 @@
    $('select').formSelect();
   }
 
-  $.get("/get_category/1", function(data){
+  $.get("/get_category/type/outcome", function(data){
     outcome_cat = cat_change(data['data'], 'outcome')
   })
-  $.get("/get_category/0", function(data){
+  $.get("/get_category/type/income", function(data){
     income_cat = cat_change(data['data'], 'income')
   })
   $.get("/get_account", function(data){

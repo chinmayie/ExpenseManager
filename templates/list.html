@@ -3,7 +3,7 @@
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1 user-scalable=0"/>
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
@@ -16,14 +16,44 @@
 </head>
 <body>
 	<style>
+		.fixed{
+			position: fixed;
+			top: 0px;	
+			background-color: gray		
+		}
+		th{
+			position: sticky;
+			top: 85px;
+			left: 0px;
+			right: 0px; 
+			background-color: gray		
+		}
 		.in_out_0{
 			background-color: rgb(153, 255, 153);
 		}
 		.in_out_1{
 			background-color: rgb(255, 204, 204);
 		}
+
 	</style>
-	<table>
+	<div>
+   	   <table class="fixed">
+		<tr>
+			<td>Income</td>
+			<td>Spent</td>
+			<td>Transfer</td>
+			<td>Total</td>
+		</tr>
+		<tr>
+			<td id="income_amount"></td>
+			<td id="outcome_amount"></td>
+			<td id="transfer_amount"></td>
+			<td id="total"></td>
+		</tr>
+	   </table>
+	   <br>
+	   <table style="margin-top: 85px">
+	   	<thead>
 		<tr>
 			<th>S.No</th>
 			<th>Date</th>
@@ -34,19 +64,168 @@
 			<th>Desctiption</th>
 			<th>Notes</th>
 		</tr>
+		</thead>
 		{% for i in data.dairy %}
-		<tr class="in_out_{{i.in_out}}">
+		<tr id="{{i.id}}" class="in_out_{{i.in_out}}">
 			<td>{{loop.index}}</td>
-			<td>{{i.date}}</td>
-			<td>{{data['account'][i.account]}}</td>
-			<td>{{data['cat'][i['cat']]}}</td>
-			<td>{{data['cat'][i['sub']]}}</td>
-			<td>{{i.amount}}</td>
+			<td>{{i.date.strftime('%Y-%m-%d %I:%M %p')}}</td>
+			<td class="{{i.account}}">{{data['account'][i.account]}}</td>
+			<td class="{{i.cat}}">{{data['cat'][i['cat']]}}</td>
+			<td class="{{i.sub}}">{{data['cat'][i['sub']]}}</td>
+			{% if i.in_out %}
+				<td class="outcome">{{i.amount}}</td>
+			{% else %}
+				<td class="income">{{i.amount}}</td>
+			{% endif %}
 			<td>{{i.description}}</td>
 			<td>{{i.notes}}</td>
 		</tr>
 		{% endfor %}
-	</table>
+	   </table>
+	</div>
+  <div id="modal1" class="modal">
+    <div class="modal-content">
+      <div id="editing" class="row">
+      </div>
+    </div>
+    <div class="modal-footer">
+    </div>
+  </div>
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		var elem = document.querySelectorAll('.modal')[0];
+		instances = M.Modal.init(elem);
+	});
+
+	$.get("/get_category/type/outcome", function(data){
+		outcome_cat = data['data']
+	})
+
+	$.get("/get_category/type/income", function(data){
+		income_cat = data['data']	
+	})
+
+	$('[class^=in_out]').on('dblclick', function(e){ 
+		instances.open()
+		li = Array.from($(this)[0].children)
+      	$('.modal-footer').html('<a onclick="update('+li[0].innerText[0]+
+      	      	')" href="#!" class="modal-close waves-effect waves-green btn-flat">Agree</a>')
+		a = '<div class="row">\
+		<div class="input-field col m4 s6"> \
+		<label class="active" for="date">Date</label> \
+		<input type="text" id="date" class="datepicker" value="'+li[1].innerText.split(' ')[0]+'"></div>\
+		<div class="input-field col m4 s6"> \
+		<label class="active" for="time">Time</label> \
+		<input type="text" id="time" class="timepicker" value="'+li[1].innerText.split(' ')[1]+ ' ' + li[1].innerText.split(' ')[2] + '"></div> \
+		<div class="input-field col m4 s6"> \
+		<select id="acc">{% for i,j in data.account.items() %} <option value={{i}}>{{j}}</option> {% endfor %}</select>\
+		<label for="acc">Account</label> </div>\
+		<div class="input-field col m4 s6"> \
+		<select id="cat" onchange="cat_change()"></select>\
+		<label for="cat">Category</label> </div>\
+		<div class="input-field col m4 s6"> \
+		<select id="sub"></select>\
+		<label for="sub">Sub Category</label> </div>\
+		\
+		<div class="input-field col m4 s6"> \
+		<input type="number" id="amount" value="'+li[5].innerText+'">\
+		<label class="active" for="amount">Amount</label></div>\
+		\
+		<div class="input-field col m6 s12"> \
+		<input type="text" id="des" value="'+li[6].innerText+'"> \
+		<label class="active" for="des">Desctiption</label></div>\
+		\
+		<div class="input-field col m6 s12"> \
+		<input type="text" id="notes" value="'+li[7].innerText+'">\
+		<label class="active" for="notes">Notes</label></div>'
+		$('#editing')[0].innerHTML = a
+		class_name = $(this)[0].classList.value
+		if (class_name == 'in_out_0'){
+		    cat = income_cat
+			$('#cat').addClass('income')
+		}
+		else{
+			cat = outcome_cat
+			$('#cat').addClass('outcome')
+		}
+		cat.forEach(function(dic){
+			if (dic.pid == 0){
+				$('#cat').append("<option value='"+dic.id+"'>"+dic.name+"</option>")
+			}
+		})
+
+		$('#acc').val(li[2].classList.value).change()
+		$('#cat').val(li[3].classList.value).change()
+		cat_change()
+		$('#sub').val(li[4].classList.value).change()
+		$('select').formSelect()
+	    console.log('sec')
+	    $('.datepicker').datepicker({
+	        autoClose : true,
+	        format: 'yyyy-mm-dd',
+	    });
+	    $('.timepicker').timepicker({
+	        autoClose : true,
+	    });
+	});
 
 
+	function cat_change() {
+		e = $('#cat')[0]
+		pid = +e.value
+		console.log(pid)
+		type = e.classList.value
+		if (type=='income'){cat = income_cat}
+		else {cat = outcome_cat}
+		console.log(cat)
+        $('#sub').html("")
+		cat.forEach(function(dic) {
+		if (dic.pid == pid) {
+			$('#sub').append("<option value='"+dic.id+"'>"+dic.name+"</option>")
+			};
+		})
+	  $('select').formSelect();
+	};
+
+	function update(row) {
+		date = $('#date').val()+' '+ $('#time').val()
+		acc_name = $('#acc option:selected').text()
+		acc_id = $('#acc option:selected').val()
+		cat_name = $('#cat option:selected').text()
+		cat_id = $('#cat option:selected').val()
+		sub_name = $('#sub option:selected').text()
+		sub_id = $('#sub option:selected').val()
+		amount = $('#amount').val()
+		des = $('#des').val()
+		notes = $('#notes').val()
+		$('tr')[row+2].innerHTML = '<td>'+row+'</td><td>'+date+'</td><td class="'+acc_id+'">'+acc_name+'</td><td class="'+cat_id+'">'+cat_name+'</td><td class="'+sub_id+'">'+sub_name+'</td><td>'+amount+'</td><td>'+des+'</td><td>'+notes+'</td>'
+		values = {'id': +$('tr')[row+2].id, 'date': date, 'in_out': +$('tr')[row+2].classList[0].split('_')[2], 'cat': +cat_id, 'sub': +sub_id, 'account': +acc_id, 'amount': +amount, 'description': des, 'notes': notes}
+		console.log(values)
+		$.ajax({
+		    type: 'POST',
+		    url: '/update_dairy',
+		    contentType: 'application/json',
+		    data: JSON.stringify(values),
+		    success: function(data) {
+				console.log(data)
+			}
+		})
+	}
+
+	function calculate() {
+		income = 0
+		Array.from($('.income')).forEach(function(e){
+			income = income + parseInt(e.innerText)
+		})
+		outcome = 0
+		Array.from($('.outcome')).forEach(function(e){
+			outcome = outcome + parseInt(e.innerText)
+		})
+		$('#income_amount').html(income)
+		$('#outcome_amount').html(outcome)
+		$('#total').html(income+outcome)
+
+	}
+	calculate()
+</script>
 </body>
